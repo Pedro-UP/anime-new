@@ -7,6 +7,9 @@ import { ref, onMounted } from 'vue'
 const listaAnimes = ref([])
 const cargando = ref(true)
 const error = ref(null)
+const novedades = ref([]) // Nueva lista para novedades
+const animeDestacado = ref(null) // El anime grande de arriba
+
 
 // Función para obtener los datos de la API
 const obtenerAnime = async () => {
@@ -14,11 +17,18 @@ const obtenerAnime = async () => {
   error.value = null // <-- Limpiamos error anterior antes de empezar
 
   try {
+    // Esto es para el top de animes
     const respuesta = await fetch('https://api.jikan.moe/v4/top/anime?limit=10')
     // Aquí verificamos si la respuesta no fue exitosa ok es false
     if (!respuesta.ok) {
       throw new Error(`Error del servidor: ${respuesta.status}`)
     }
+    // Esto es para el anime de la temporada actual
+    const resNov = await fetch('https://api.jikan.moe/v4/seasons/now?limit=6')
+    const datosNov = await resNov.json()
+    novedades.value = datosNov.data
+    // El primer anime de las novedades será el destacado
+    animeDestacado.value = datosNov.data[0]
 
     const datos = await respuesta.json()
     listaAnimes.value = datos.data // Guardamos solo el array de animes
@@ -43,8 +53,6 @@ onMounted(() => {
 
 <template>
   <div class="container mx-auto">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Animes más Populares</h2>
-
     <!-- Estado de error -->
     <div v-if="error" class="min-h-[60vh] flex flex-col items-center justify-center text-center">
       <div class="text-9xl mb-4">🏮</div>
@@ -68,20 +76,66 @@ onMounted(() => {
       <p class="mt-4 text-indigo-900 font-medium animate-pulse">Buscando en los archivos de AniRoom...</p>
     </div>
 
-    <!-- Lista de animes -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      <div v-for="anime in listaAnimes" :key="anime.mal_id"
-        class="bg-white rounded-xl shadow-md overflow-hidden hover:scale-105 transition-transform duration-300 border border-gray-100">
-        <img :src="anime.images.jpg.large_image_url" :alt="anime.title" class="w-full h-64 object-cover" />
+    <!-- Contenido principal -->
+    <div v-else>
+      <!-- Anime Destacado en la parte superior -->
+      <section v-if="animeDestacado" class="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl mb-12">
+        <img :src="animeDestacado.images.jpg.large_image_url"
+          class="absolute w-full h-full object-cover opacity-40 blur-sm" />
+        <div class="relative z-10 flex h-full items-center p-8 bg-gradient-to-r from-black/80 to-transparent">
+          <img :src="animeDestacado.images.jpg.large_image_url"
+            class="w-48 h-72 rounded-lg shadow-2xl mr-8 hidden md:block" />
+          <div class="max-w-2xl">
+            <span
+              class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Destacado
+              de hoy</span>
+            <h1 class="text-5xl font-black text-white mt-4 mb-4 leading-tight">{{ animeDestacado.title }}</h1>
+            <p class="text-gray-300 line-clamp-3 mb-6">{{ animeDestacado.synopsis }}</p>
+            <button
+              class="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-indigo-500 hover:text-white transition-all">
+              Ver detalles ahora
+            </button>
+          </div>
+        </div>
+      </section>
 
-        <!-- Información del anime como título, puntuación y tipo -->
-        <div class="p-4">
-          <h3 class="font-bold text-sm line-clamp-2 h-10 text-gray-800">{{ anime.title }}</h3>
-          <div class="flex items-center mt-2 justify-between">
-            <span class="text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
-              ⭐ {{ anime.score }}
-            </span>
-            <span class="text-xs text-gray-500">{{ anime.type }}</span>
+      <!-- Seccion de novedades anime debajo del destacado -->
+      <section class="mb-12">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-3xl font-black text-gray-800 border-l-8 border-indigo-600 pl-4">Novedades de Temporada</h2>
+          <router-link to="/anime" class="text-indigo-600 font-bold hover:underline">Ver todo</router-link>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div v-for="anime in novedades" :key="anime.mal_id" class="group cursor-pointer">
+            <div class="relative overflow-hidden rounded-xl">
+              <img :src="anime.images.jpg.large_image_url"
+                class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500" />
+              <div
+                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="text-white font-bold">Ver +</span>
+              </div>
+            </div>
+            <h3 class="mt-2 text-sm font-bold text-gray-700 line-clamp-1">{{ anime.title }}</h3>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lista de animes -->
+      <h2 class="text-2xl font-bold mb-6 text-gray-800">Animes más Populares</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div v-for="anime in listaAnimes" :key="anime.mal_id"
+          class="bg-white rounded-xl shadow-md overflow-hidden hover:scale-105 transition-transform duration-300 border border-gray-100">
+          <img :src="anime.images.jpg.large_image_url" :alt="anime.title" class="w-full h-64 object-cover" />
+
+          <!-- Información del anime como título, puntuación y tipo -->
+          <div class="p-4">
+            <h3 class="font-bold text-sm line-clamp-2 h-10 text-gray-800">{{ anime.title }}</h3>
+            <div class="flex items-center mt-2 justify-between">
+              <span class="text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                ⭐ {{ anime.score }}
+              </span>
+              <span class="text-xs text-gray-500">{{ anime.type }}</span>
+            </div>
           </div>
         </div>
       </div>
