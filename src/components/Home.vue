@@ -103,8 +103,9 @@ onMounted(() => {
     <!-- Contenido principal -->
     <div v-else>
       <!-- Anime Destacado en la parte superior -->
-      <section v-if="animeDestacado" class="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl mb-12">
-        <img :src="animeDestacado.images.jpg.large_image_url"
+      <section v-if="animeDestacado"
+        class="relative min-h-[400px] md:h-[500px] rounded-3xl overflow-hidden shadow-2xl mb-12 mx-4 md:mx-0"> <img
+          :src="animeDestacado.images.jpg.large_image_url"
           class="absolute w-full h-full object-cover opacity-40 blur-sm" />
         <div class="relative z-10 flex h-full items-center p-8 bg-gradient-to-r from-black/80 to-transparent">
           <img :src="animeDestacado.images.jpg.large_image_url"
@@ -135,7 +136,7 @@ onMounted(() => {
             </router-link>
           </div>
           <!-- Grid mejorado -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
             <div v-for="anime in novedades.slice(0, 6)" :key="anime.mal_id"
               class="group cursor-pointer relative overflow-hidden rounded-xl border-2 border-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-500">
               <!-- Imagen -->
@@ -209,4 +210,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-hola
