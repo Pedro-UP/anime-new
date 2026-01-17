@@ -100,24 +100,55 @@ onMounted(() => {
       </section>
 
       <!-- Seccion de novedades anime debajo del destacado -->
-      <section class="mb-12">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-3xl font-black text-gray-800 border-l-8 border-indigo-600 pl-4">Novedades de Temporada</h2>
-          <router-link to="/anime" class="text-indigo-600 font-bold hover:underline">Ver todo</router-link>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div v-for="anime in novedades" :key="anime.mal_id" class="group cursor-pointer">
-            <div class="relative overflow-hidden rounded-xl">
+      <section class="mb-12 bg-blue-900 w-screen -ml-[calc(50vw-50%)] p-6 min-h-screen">
+        <div class="max-w-screen-xl mx-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-3xl font-black text-white border-l-8 border-white pl-4">
+              Animes Destacados
+            </h2>
+            <router-link to="/anime" class="text-white font-bold hover:underline">
+              Ver todo
+            </router-link>
+          </div>
+          <!-- Grid mejorado -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="anime in novedades.slice(0, 6)" :key="anime.mal_id"
+              class="group cursor-pointer relative overflow-hidden rounded-xl border-2 border-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-500">
+              <!-- Imagen -->
               <img :src="anime.images.jpg.large_image_url"
                 class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500" />
+              <!-- Overlay con degradado y blur -->
               <div
-                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span class="text-white font-bold">Ver +</span>
+                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-4 flex flex-col justify-end backdrop-blur-sm">
+                <h3 class="text-lg font-bold text-white mb-2 truncate">
+                  {{ anime.title }}
+                </h3>
+                <p class="text-sm text-gray-200 line-clamp-2">
+                  {{ anime.synopsis }}
+                </p>
+                <!-- Badges -->
+                <div class="flex gap-2 mt-3">
+                  <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                    {{ anime.status }}
+                  </span>
+                  <span class="bg-green-600 text-white text-xs px-3 py-1 rounded-full">
+                    {{ anime.episodes }} eps
+                  </span>
+                </div>
+                <!-- Botón de acción -->
+                <router-link :to="`/anime/${anime.mal_id}`"
+                  class="mt-3 inline-block bg-white text-blue-900 font-bold text-xs px-4 py-2 rounded-full hover:bg-gray-200 transition">
+                  Ver más
+                </router-link>
               </div>
+              <!-- Título debajo (visible siempre) -->
+              <h3 class="mt-2 text-sm font-bold text-white text-center truncate">
+                {{ anime.title }}
+              </h3>
             </div>
-            <h3 class="mt-2 text-sm font-bold text-gray-700 line-clamp-1">{{ anime.title }}</h3>
           </div>
         </div>
+
       </section>
 
       <!-- Lista de animes -->
