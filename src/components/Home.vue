@@ -1,6 +1,7 @@
 <script setup>
 // Usamos script setup que simplifica la sintaxis en Vue 3 con Composition API
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // Estado reactivo
 // Los estados reactivos son para que la interfaz de usuario se actualice automáticamente cuando los datos cambian.  
@@ -10,19 +11,23 @@ const error = ref(null)
 const novedades = ref([]) // Nueva lista para novedades
 const animeDestacado = ref(null) // El anime grande de arriba
 
+// Estados para paginación y mostrar más animes
+const paginaActual = ref(1)
+const mostrarExtra = ref(false)
+const mostrarBotonAnimes = ref(false)
+// Router para navegación programática
+const router = useRouter()
 
 // Función para obtener los datos de la API
 const obtenerAnime = async () => {
   cargando.value = true
   error.value = null // <-- Limpiamos error anterior antes de empezar
-
   try {
-    // Esto es para el top de animes
-    const respuesta = await fetch('https://api.jikan.moe/v4/top/anime?limit=10')
+    // Esto es para el top de animes y la cantidad por página
+    const respuesta = await fetch(`https://api.jikan.moe/v4/top/anime?limit=10&page=${paginaActual.value}`)
     // Aquí verificamos si la respuesta no fue exitosa ok es false
-    if (!respuesta.ok) {
-      throw new Error(`Error del servidor: ${respuesta.status}`)
-    }
+    if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`)
+
     // Esto es para el anime de la temporada actual
     const resNov = await fetch('https://api.jikan.moe/v4/seasons/now?limit=6')
     const datosNov = await resNov.json()
@@ -40,10 +45,29 @@ const obtenerAnime = async () => {
     cargando.value = false
   }
 }
+// Función para cargar más animes (paginación)
+const cargarMasAnimes = async () => {
+  try {
+    // Incrementamos la página actual
+    paginaActual.value++
+    const respuesta = await fetch(`https://api.jikan.moe/v4/top/anime?limit=20&page=${paginaActual.value}`)
+    const datos = await respuesta.json()
+    // Agregamos los nuevos animes a la lista existente
+    listaAnimes.value.push(...datos.data)
+    mostrarExtra.value = true
+    mostrarBotonAnimes.value = true
+  } catch (err) {
+    console.error("Error al cargar más animes:", err)
+  }
+}
 
 // Función para reintentar la carga
 const reintentarCarga = () => {
   obtenerAnime()
+}
+// Función para ir a la página de animes
+const irAAnimes = () => {
+  router.push('/anime')
 }
 // Llamamos la función al montar el componente
 onMounted(() => {
@@ -170,6 +194,19 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+      <!-- Botones de acción para mostrar más animes o ir a la página de animes -->
+      <div class="flex justify-center mt-8">
+        <button v-if="!mostrarExtra" @click="cargarMasAnimes"
+          class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-lg">
+          Mostrar más
+        </button>
+        <button v-else-if="mostrarBotonAnimes" @click="irAAnimes"
+          class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition-all transform hover:scale-105 shadow-lg">
+          Mostrar Animes
+        </button>
+      </div>
     </div>
   </div>
 </template>
+hola
