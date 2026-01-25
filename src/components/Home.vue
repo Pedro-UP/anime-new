@@ -2,6 +2,7 @@
 // Usamos script setup que simplifica la sintaxis en Vue 3 con Composition API
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import LoadingST from '@/components/LoadingST.vue'
 
 // Estado reactivo
 // Los estados reactivos son para que la interfaz de usuario se actualice automáticamente cuando los datos cambian.  
@@ -78,30 +79,7 @@ onMounted(() => {
 <template>
   <div class="container mx-auto">
     <!-- Estado de error -->
-    <div v-if="error" class="min-h-[60vh] flex flex-col items-center justify-center text-center">
-      <div class="text-9xl mb-4">🏮</div>
-      <h1 class="text-6xl font-black text-indigo-900 mb-2">404</h1>
-      <p class="text-xl text-gray-600 mb-6">¡Oye! Parece que los ninjas de la red se llevaron la información.</p>
-      <!-- Mostrar detalle técnico del error -->
-      <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 max-w-md">
-        <p class="text-red-700 text-sm font-mono italic">
-          Detalle técnico: {{ error }}
-        </p>
-      </div>
-      <!-- Botón para reintentar la carga -->
-      <button @click="reintentarCarga"
-        class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-lg">
-        Intentar invocar de nuevo
-      </button>
-    </div>
-    <!-- Estado de carga -->
-    <div v-else-if="cargando" class="flex flex-col items-center justify-center min-h-[50vh]">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
-      <p class="mt-4 text-indigo-900 font-medium animate-pulse">Buscando en los archivos de AniRoom...</p>
-    </div>
-
-    <!-- Contenido principal -->
-    <div v-else>
+    <LoadingST :cargando="cargando" :error="error" @retry="reintentarCarga">
       <!-- Anime Destacado en la parte superior -->
       <section v-if="animeDestacado"
         class="relative min-h-[400px] md:h-[500px] rounded-3xl overflow-hidden shadow-2xl mb-12 mx-4 md:mx-0"> <img
@@ -207,6 +185,6 @@ onMounted(() => {
           Mostrar Animes
         </button>
       </div>
-    </div>
+    </LoadingST>
   </div>
 </template>
