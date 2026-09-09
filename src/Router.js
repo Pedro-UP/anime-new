@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from './components/Home.vue'
-import Anime from './components/Anime.vue'
-import Personajes from './components/Personajes.vue'
+import Home from './components/views/Home.vue'
+import Anime from './components/views/Anime.vue'
+import Personajes from './components/views/Personajes.vue'
 
 // Aquí definimos las rutas
 const routes = [
   { path: '/', name: 'Home', component: Home },
-  { path: '/anime', name: 'Anime', component: () => import('./components/Anime.vue') },
-  { path: '/personajes', name: 'Personajes', component: () => import('./components/Personajes.vue') },
+  { path: '/anime', name: 'Anime', component: () => import('./components/views/Anime.vue') },
+  { path: '/personajes', name: 'Personajes', component: () => import('./components/views/Personajes.vue') },
   //   { path: '/acerca-de', name: 'AcercaDe', component: () => import('./components/AcercaDe.vue') },
 ]
 

@@ -17,7 +17,7 @@ const closeMenu = () => {
 <template>
   <div class="flex flex-col h-screen bg-gray-50 overflow-hidden">
     <!-- Inicio de la barra de navegación -->
-    <nav class="bg-white border-b border-gray-200 px-4 md:px-6 py-4 relative z-50 shadow-sm">
+    <nav class="bg-gray-900 border-b border-gray-100 px-4 md:px-6 py-4 relative z-50 shadow-sm">
       <div class="flex items-center justify-between max-w-7xl mx-auto">
         <!-- Logo y nombre del sitio interactivo (HOME) -->
         <router-link to="/" class="flex items-center group" @click="closeMenu">
@@ -42,12 +42,12 @@ const closeMenu = () => {
         </button>
         <!-- Menu de navegación para escritorio -->
         <div class="hidden md:flex items-center gap-8">
-          <router-link to="/anime" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors"
-            active-class="text-indigo-600 border-b-2 border-indigo-600">
+          <router-link to="/anime" class="text-gray-200 hover:text-indigo-200 font-medium transition-colors"
+            active-class="text-indigo-800 border-b-2 border-indigo-800">
             Animes
           </router-link>
-          <router-link to="/personajes" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors"
-            active-class="text-indigo-600 border-b-2 border-indigo-600">
+          <router-link to="/personajes" class="text-gray-200 hover:text-indigo-200 font-medium transition-colors"
+            active-class="text-indigo-800 border-b-2 border-indigo-800">
             Personajes
           </router-link>
           <router-link to="/acerca-de"

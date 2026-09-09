@@ -2,7 +2,7 @@
 // Usamos script setup que simplifica la sintaxis en Vue 3 con Composition API
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import LoadingST from '@/components/LoadingST.vue'
+import LoadingST from '@/components/ui/LoadingST.vue'
 
 // Estado reactivo
 // Los estados reactivos son para que la interfaz de usuario se actualice automáticamente cuando los datos cambian.  
