@@ -4,66 +4,65 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import LoadingST from '@/components/ui/LoadingST.vue'
 
+// Importamos las funciones de la capa de servicio (conector Kitsu API)
+import { getAnimesRecientes, getAnimesPopulares } from '@/service/animeApi'
 // Estado reactivo
-// Los estados reactivos son para que la interfaz de usuario se actualice automáticamente cuando los datos cambian.  
+// Los estados reactivos son para que la interfaz de usuario se actualice automáticamente cuando los datos cambian.
 const listaAnimes = ref([])
 const cargando = ref(true)
 const error = ref(null)
-const novedades = ref([]) // Nueva lista para novedades
+const novedades = ref([]) // Lista para novedades
 const animeDestacado = ref(null) // El anime grande de arriba
-
 // Estados para paginación y mostrar más animes
 const paginaActual = ref(1)
 const mostrarExtra = ref(false)
 const mostrarBotonAnimes = ref(false)
+
 // Router para navegación programática
 const router = useRouter()
 
-// Función para obtener los datos de la API
+// Función para obtener los datos iniciales de la vista
 const obtenerAnime = async () => {
   cargando.value = true
-  error.value = null // <-- Limpiamos error anterior antes de empezar
+  error.value = null // Limpiamos error anterior antes de empezar
   try {
-    // Esto es para el top de animes y la cantidad por página
-    const respuesta = await fetch(`https://api.jikan.moe/v4/top/anime?limit=10&page=${paginaActual.value}`)
-    // Aquí verificamos si la respuesta no fue exitosa ok es false
-    if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`)
-
-    // Esto es para el anime de la temporada actual
-    const resNov = await fetch('https://api.jikan.moe/v4/seasons/now?limit=6')
-    const datosNov = await resNov.json()
-    novedades.value = datosNov.data
-    // El primer anime de las novedades será el destacado
-    animeDestacado.value = datosNov.data[0]
-
-    const datos = await respuesta.json()
-    listaAnimes.value = datos.data // Guardamos solo el array de animes
+    // 1. Obtenemos las novedades en emisión (recientes)
+    const resNov = await getAnimesRecientes(1)
+    // Tomamos hasta 6 elementos para el carrusel/lista de novedades
+    novedades.value = resNov.data.slice(0, 6)
+    // El primer anime de las novedades será el destacado superior
+    animeDestacado.value = novedades.value[0] || null
+    // 2. Obtenemos el top de animes populares
+    const resTop = await getAnimesPopulares(paginaActual.value)
+    listaAnimes.value = resTop.data
   } catch (err) {
     console.error("Error al obtener datos:", err)
     // Mostramos un mensaje de error amigable que explique el problema
-    error.value = err.message || 'Error desconocido'
+    error.value = err.message || 'Ocurrió un error al cargar la información'
   } finally {
     cargando.value = false
   }
 }
-// Función para cargar más animes (paginación)
+
+// Función para cargar más animes (paginación incremental)
 const cargarMasAnimes = async () => {
   try {
-    // Incrementamos la página actual
+    // Incrementamos la página actual de forma secuencial
     paginaActual.value++
-    const respuesta = await fetch(`https://api.jikan.moe/v4/top/anime?limit=20&page=${paginaActual.value}`)
-    const datos = await respuesta.json()
-    // Agregamos los nuevos animes a la lista existente
-    listaAnimes.value.push(...datos.data)
+    // Solicitamos a animeApi la siguiente página del listado popular
+    const res = await getAnimesPopulares(paginaActual.value)
+    // Agregamos los nuevos animes recibidos a la lista existente
+    listaAnimes.value.push(...res.data)
     mostrarExtra.value = true
     mostrarBotonAnimes.value = true
+
   } catch (err) {
     console.error("Error al cargar más animes:", err)
   }
 }
-
 // Función para reintentar la carga
 const reintentarCarga = () => {
+  paginaActual.value = 1
   obtenerAnime()
 }
 // Función para ir a la página de animes

@@ -4,50 +4,54 @@ import LoadingST from '@/components/ui/LoadingST.vue'
 import Navbar from '@/components/ui/Navbar.vue'
 import CategoriesModal from '@/components/ui/CategoriesModal.vue' // <-- importar modal
 
+// Servicio API centralizado de Kitsu
+import {
+  getAnimesRecientes,
+  buscarAnimePorTexto,
+  buscarAnimePorCategoria
+} from '@/service/animeApi'
+
+// 1. ESTADOS REACTIVOS PARA LA INTERFAZ
 // Todas las variables reactivas para que la UI se actualice automáticamente
 const animesRecientes = ref([])
 const cargando = ref(true)
 const error = ref(null)
 const paginaActual = ref(1)
 const totalPaginas = ref(1)
-const limite = 10
 const tituloVista = ref("Novedades en Emisión")
 
-// Nuevo: estado para controlar modal y categoría seleccionada
-const showCategories = ref(false)
+// Estado para rastrear qué filtro/búsqueda está activo en la paginación
+const searchQuery = ref('')
 const selectedCategory = ref('') // cadena vacía = sin filtro
+const showCategories = ref(false)
 
 // Lista de categorías (ajusta a tus categorías reales)
 const categories = ref(['Shonen', 'Seinen', 'Shojo', 'Romcom', 'Drama', 'Isekai'])
 
-// Función para obtener animes (General para temporada o búsqueda)
-const fetchAnimes = async (url, titulo) => {
+// 2. FUNCIONES DE CARGA Y FILTRADO DE DATOS
+// Carga principal: Animes en emisión / populares actuales
+const obtenerAnimesRecientes = async (pagina = 1) => {
   try {
     cargando.value = true
     error.value = null // Limpiamos errores previos
-    // La URL dinamica el page=${pagina} le indica a la API exactamente qué página queremos
-    const respuesta = await fetch(url)
-    const datos = await respuesta.json()
-    animesRecientes.value = datos.data // Guardamos los animes recientes
-    // La API de Jikan nos da dos partes principales data y pagination
-    totalPaginas.value = datos.pagination?.last_visible_page || 1 // Last visible page nos dice el total de páginas disponibles
-    tituloVista.value = titulo
+    // Llamada al servicio API para obtener animes recientes
+    const res = await getAnimesRecientes(pagina)
+    animesRecientes.value = res.data // Guardamos los animes recientes
+    totalPaginas.value = res.pagination.last_visible_page // Actualizamos el total de páginas según la respuesta
+    tituloVista.value = "Novedades en Emisión"
+    paginaActual.value = pagina
   } catch (err) {
     error.value = "No pudimos conectar con el servidor de anime."
   } finally {
     cargando.value = false
   }
 }
-// Función para obtener animes recientes con paginación es una función asíncrona
-const obtenerAnimesRecientes = (pagina = 1) => {
-  const url = `https://api.jikan.moe/v4/seasons/now?page=${pagina}&limit=${limite}`
-  fetchAnimes(url, "Novedades en Emisión")
-  paginaActual.value = pagina
-}
-// Función que se ejecuta cuando el Navbar emite 'search'
-const buscarAnime = (query) => {
+
+// Búsqueda por palabra clave (emitida desde el Navbar)
+const buscarAnime = async (query, pagina = 1) => {
+  searchQuery.value = query // Guardamos la búsqueda actual para la paginación
+  // Si la búsqueda está vacía, regresamos al filtro de categoría o a los recientes
   if (!query.trim()) {
-    // Si no hay búsqueda por texto, pero hay categoría seleccionada, puedes buscar por categoría
     if (selectedCategory.value) {
       buscarPorCategoria(selectedCategory.value, 1)
       return
@@ -55,43 +59,62 @@ const buscarAnime = (query) => {
     obtenerAnimesRecientes(1)
     return
   }
-  // Ejemplo simple: búsqueda por texto (si quieres combinar con categoría, añade lógica aquí)
-  const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=${limite}`
-  fetchAnimes(url, `Resultados para: ${query}`)
-  paginaActual.value = 1
+
+  // Si busca por texto, limpiamos la categoría seleccionada
+  selectedCategory.value = ''
+
+  try {
+    cargando.value = true
+    error.value = null
+    const res = await buscarAnimePorTexto(query, pagina)
+
+    animesRecientes.value = res.data
+    totalPaginas.value = res.pagination.last_visible_page
+    tituloVista.value = `Resultados para: ${query}`
+    paginaActual.value = pagina
+  } catch (err) {
+    error.value = "Ocurrió un error al buscar el anime."
+  } finally {
+    cargando.value = false
+  }
 }
 
-//Creacion de Objeto para buscar por categoría a traves de mapeo
-const genreMap = {
-  Shonen: 27,
-  Shojo: 25,
-  Seinen: 42,
-  Drama: 8,
-  Romcom: 22, // puedes usar Romance (22) + Comedy (4) si quieres combinar
-  Isekai: 62 // ejemplo, revisa el ID real en la lista
-}
-
-// Nueva función: buscar por categoría
-// Nota: si tu API soporta filtrar por género/categoría en servidor, reemplaza la URL por la correcta.
-// Aquí dejo un ejemplo genérico que puedes adaptar.
-const buscarPorCategoria = (cat, pagina = 1) => {
+// Filtrado por categoría / género
+const buscarPorCategoria = async (cat, pagina = 1) => {
   if (!cat) {
     obtenerAnimesRecientes(1)
     return
   }
-
-  const genreId = genreMap[cat]
-  if (!genreId) {
-    // Si no existe el ID, mostramos recientes
-    obtenerAnimesRecientes(1)
-    return
+  // Limpiamos el texto de búsqueda cuando se filtra por categoría
+  searchQuery.value = ''
+  try {
+    cargando.value = true
+    error.value = null
+    const res = await buscarAnimePorCategoria(cat, pagina)
+    // Llamada al servicio API para buscar por categoría
+    animesRecientes.value = res.data
+    totalPaginas.value = res.pagination.last_visible_page
+    tituloVista.value = `Resultados para categoría: ${cat}`
+    paginaActual.value = pagina
+  } catch (err) {
+    error.value = "No pudimos cargar los animes de esta categoría."
+  } finally {
+    cargando.value = false
   }
-
-  const url = `https://api.jikan.moe/v4/anime?genres=${genreId}&page=${pagina}&limit=${limite}`
-  fetchAnimes(url, `Resultados para categoría: ${cat}`)
-  paginaActual.value = pagina
 }
 
+// 3. NAVEGACIÓN Y CICLO DE VIDA
+
+// Función unificada de paginación que detecta qué tipo de contenido estamos viendo
+const cambiarPagina = (nuevaPagina) => {
+  if (selectedCategory.value) {
+    buscarPorCategoria(selectedCategory.value, nuevaPagina)
+  } else if (searchQuery.value) {
+    buscarAnime(searchQuery.value, nuevaPagina)
+  } else {
+    obtenerAnimesRecientes(nuevaPagina)
+  }
+}
 
 // Función para reintentar la carga (se conecta con LoadingST)
 const reintentarCarga = () => obtenerAnimesRecientes(paginaActual.value)
