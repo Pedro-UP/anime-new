@@ -93,10 +93,11 @@ onMounted(() => {
               de hoy</span>
             <h1 class="text-5xl font-black text-white mt-4 mb-4 leading-tight">{{ animeDestacado.title }}</h1>
             <p class="text-gray-300 line-clamp-3 mb-6">{{ animeDestacado.synopsis }}</p>
-            <button
-              class="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-indigo-500 hover:text-white transition-all">
+            <!-- Botón hacia el detalle del anime destacado -->
+            <router-link :to="`/anime/${animeDestacado.mal_id}`"
+              class="inline-block bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-indigo-500 hover:text-white transition-all">
               Ver detalles ahora
-            </button>
+            </router-link>
           </div>
         </div>
       </section>
@@ -116,33 +117,39 @@ onMounted(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
             <div v-for="anime in novedades.slice(0, 6)" :key="anime.mal_id"
               class="group cursor-pointer relative overflow-hidden rounded-xl border-2 border-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-500">
-              <!-- Imagen -->
-              <img :src="anime.images.jpg.large_image_url"
-                class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500" />
-              <!-- Overlay con degradado y blur -->
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-4 flex flex-col justify-end backdrop-blur-sm">
-                <h3 class="text-lg font-bold text-white mb-2 truncate">
-                  {{ anime.title }}
-                </h3>
-                <p class="text-sm text-gray-200 line-clamp-2">
-                  {{ anime.synopsis }}
-                </p>
-                <!-- Badges -->
-                <div class="flex gap-2 mt-3">
-                  <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
-                    {{ anime.status }}
-                  </span>
-                  <span class="bg-green-600 text-white text-xs px-3 py-1 rounded-full">
-                    {{ anime.episodes }} eps
+
+              <!-- Enlace envolvente en la tarjeta para ir al detalle -->
+              <router-link :to="`/anime/${anime.mal_id}`" class="block w-full h-full">
+                <!-- Imagen -->
+                <img :src="anime.images.jpg.large_image_url"
+                  class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500" />
+
+                <!-- Overlay con degradado y blur -->
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-4 flex flex-col justify-end backdrop-blur-sm">
+                  <h3 class="text-lg font-bold text-white mb-2 truncate">
+                    {{ anime.title }}
+                  </h3>
+                  <p class="text-sm text-gray-200 line-clamp-2">
+                    {{ anime.synopsis }}
+                  </p>
+                  <!-- Badges -->
+                  <div class="flex gap-2 mt-3">
+                    <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                      {{ anime.status }}
+                    </span>
+                    <span class="bg-green-600 text-white text-xs px-3 py-1 rounded-full">
+                      {{ anime.episodes }} eps
+                    </span>
+                  </div>
+                  <!-- Botón de acción -->
+                  <span
+                    class="mt-3 inline-block bg-white text-blue-900 font-bold text-xs px-4 py-2 rounded-full hover:bg-gray-200 transition text-center">
+                    Ver más
                   </span>
                 </div>
-                <!-- Botón de acción -->
-                <router-link :to="`/anime/${anime.mal_id}`"
-                  class="mt-3 inline-block bg-white text-blue-900 font-bold text-xs px-4 py-2 rounded-full hover:bg-gray-200 transition">
-                  Ver más
-                </router-link>
-              </div>
+              </router-link>
+
               <!-- Título debajo (visible siempre) -->
               <h3 class="mt-2 text-sm font-bold text-white text-center truncate">
                 {{ anime.title }}
@@ -156,8 +163,8 @@ onMounted(() => {
       <!-- Lista de animes -->
       <h2 class="text-2xl font-bold mb-6 text-gray-800">Animes más Populares</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        <div v-for="anime in listaAnimes" :key="anime.mal_id"
-          class="bg-white rounded-xl shadow-md overflow-hidden hover:scale-105 transition-transform duration-300 border border-gray-100">
+        <router-link v-for="anime in listaAnimes" :key="anime.mal_id" :to="`/anime/${anime.mal_id}`"
+          class="bg-white rounded-xl shadow-md overflow-hidden hover:scale-105 transition-transform duration-300 border border-gray-100 block cursor-pointer">
           <img :src="anime.images.jpg.large_image_url" :alt="anime.title" class="w-full h-64 object-cover" />
 
           <!-- Información del anime como título, puntuación y tipo -->
@@ -170,7 +177,7 @@ onMounted(() => {
               <span class="text-xs text-gray-500">{{ anime.type }}</span>
             </div>
           </div>
-        </div>
+        </router-link>
       </div>
 
       <!-- Botones de acción para mostrar más animes o ir a la página de animes -->

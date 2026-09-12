@@ -7,7 +7,11 @@ import Personajes from './components/views/Personajes.vue'
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/anime', name: 'Anime', component: () => import('./components/views/Anime.vue') },
+  // Ruta para detalles de un anime específico
+  { path: '/anime/:id', name: 'AnimeDetail', component: () => import('./components/views/AnimeDetail.vue') },
   { path: '/personajes', name: 'Personajes', component: () => import('./components/views/Personajes.vue') },
+  // Ruta para detalles de un personaje específico
+  { path: '/personajes/:id', name: 'CharacterDetail', component: () => import('./components/views/CharacterDetail.vue') },
   //   { path: '/acerca-de', name: 'AcercaDe', component: () => import('./components/AcercaDe.vue') },
 ]
 

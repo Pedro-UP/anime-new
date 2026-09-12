@@ -116,6 +116,15 @@ const cambiarPagina = (nuevaPagina) => {
   }
 }
 
+// Variable para guardar el anime que se mostrará en la ventana flotante
+const animeSeleccionado = ref(null)
+const abrirVistaPrevia = (anime) => {
+  animeSeleccionado.value = anime
+}
+const cerrarVistaPrevia = () => {
+  animeSeleccionado.value = null
+}
+
 // Función para reintentar la carga (se conecta con LoadingST)
 const reintentarCarga = () => obtenerAnimesRecientes(paginaActual.value)
 // Se inicia la carga de datos al cargar la vista para que el usuario no vea la pantalla vacía.
@@ -152,25 +161,27 @@ watch(selectedCategory, (nueva) => {
 
       <!-- Muestra los animes recientes en una lista y la paginación al final -->
       <div class="space-y-6">
-        <!-- El V-for esta haciendo un renderizado dinámico de la lista de los animes -->
+        <!-- Tarjeta de anime vinculada dinámicamente a su detalle -->
         <div v-for="anime in animesRecientes" :key="anime.mal_id"
           class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-all duration-300 group">
-          <div class="relative w-full md:w-48 h-64 md:h-auto overflow-hidden">
-            <img :src="anime.images.jpg.large_image_url"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-            <!-- Estado del anime -->
-            <div
-              class="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase">
-              {{ anime.status }}
-            </div>
-          </div>
+          <!-- Enlace en la imagen del anime -->
+          <div @click="abrirVistaPrevia(anime)" class="relative w-full md:w-48 h-64 md:h-auto overflow-hidden cursor-pointer">
+  <img :src="anime.images.jpg.large_image_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+  <div class="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase">
+    {{ anime.status }}
+  </div>
+</div>
+
           <!-- Contenido del anime -->
           <div class="p-6 flex-1 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
-                <h2 class="text-2xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                  {{ anime.title }}
-                </h2>
+                <!-- Título clickeable hacia el detalle -->
+                <router-link :to="`/anime/${anime.mal_id}`"
+                  class="text-2xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                  <h2>{{ anime.title }}</h2>
+                </router-link>
+
                 <span class="bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-lg text-sm">
                   ⭐ {{ anime.score || 'N/A' }}
                 </span>
@@ -192,11 +203,13 @@ watch(selectedCategory, (nueva) => {
                 {{ anime.synopsis }}
               </p>
             </div>
+
             <!-- Botón para ver detalles completos -->
             <div class="mt-4 flex justify-end">
-              <button class="text-indigo-600 font-bold text-sm hover:underline flex items-center gap-1">
+              <router-link :to="`/anime/${anime.mal_id}`"
+                class="text-indigo-600 font-bold text-sm hover:underline flex items-center gap-1">
                 Ver detalles completos <span>→</span>
-              </button>
+              </router-link>
             </div>
           </div>
         </div>
@@ -227,6 +240,34 @@ watch(selectedCategory, (nueva) => {
       </div>
     </LoadingST>
   </div>
+
+  <!-- Ventana Flotante / Modal -->
+<div v-if="animeSeleccionado" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="cerrarVistaPrevia">
+  <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl relative">
+    
+    <!-- Botón X para cerrar sin recargar la página -->
+    <button @click="cerrarVistaPrevia" class="absolute top-3 right-3 bg-gray-900/70 hover:bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold z-10">
+      ✕
+    </button>
+
+    <!-- Imagen y Título -->
+    <div class="relative h-56 w-full">
+      <img :src="animeSeleccionado.images.jpg.large_image_url" class="w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+      <h3 class="absolute bottom-3 left-4 right-4 text-xl font-bold text-white drop-shadow">
+        {{ animeSeleccionado.title }}
+      </h3>
+    </div>
+
+    <!-- Sinopsis simple -->
+    <div class="p-5">
+      <p class="text-gray-600 text-sm max-h-40 overflow-y-auto italic">
+        {{ animeSeleccionado.synopsis || 'Sin descripción disponible.' }}
+      </p>
+    </div>
+
+  </div>
+</div>
   <!-- Modal de categorías -->
   <CategoriesModal :show="showCategories" :categories="categories" @close="showCategories = false"
     @select="(cat) => { selectedCategory = cat || ''; showCategories = false }" />
